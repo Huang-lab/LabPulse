@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LabPulse — Huang Lab activity</title>
+  <meta name="description" content="Activity across all Huang Lab repositories: commits and lines changed per contributor, by day, week, or month." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%88%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <div class="viz-root" id="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>LabPulse <span class="pulse" aria-hidden="true"></span></h1>
+        <p class="tagline">Activity across all Huang Lab repositories</p>
+      </div>
+      <div class="topbar-meta">
+        <span id="demo-badge" class="badge badge-warn" hidden>Demo data</span>
+        <span id="updated" class="updated"></span>
+        <button id="theme-toggle" class="icon-btn" type="button" title="Toggle light / dark" aria-label="Toggle light / dark">◐</button>
+      </div>
+    </header>
+
+    <section class="filters" aria-label="Filters">
+      <div class="filter">
+        <label for="range">Date range</label>
+        <select id="range">
+          <option value="30">Last 30 days</option>
+          <option value="90" selected>Last 90 days</option>
+          <option value="180">Last 180 days</option>
+          <option value="365">Last 12 months</option>
+          <option value="all">All time</option>
+          <option value="custom">Custom…</option>
+        </select>
+      </div>
+      <div class="filter custom-range" id="custom-range" hidden>
+        <label>From <input type="date" id="from" /></label>
+        <label>To <input type="date" id="to" /></label>
+      </div>
+      <div class="filter">
+        <label>Granularity</label>
+        <div class="segmented" id="granularity" role="group" aria-label="Granularity">
+          <button type="button" data-val="day">Day</button>
+          <button type="button" data-val="week" class="active">Week</button>
+          <button type="button" data-val="month">Month</button>
+        </div>
+      </div>
+      <div class="filter">
+        <label>Measure by</label>
+        <div class="segmented" id="metric" role="group" aria-label="Metric">
+          <button type="button" data-val="lines" class="active">Lines changed</button>
+          <button type="button" data-val="commits">Commits</button>
+          <button type="button" data-val="additions">Additions</button>
+          <button type="button" data-val="deletions">Deletions</button>
+        </div>
+      </div>
+      <div class="filter">
+        <label for="repo-filter">Repositories</label>
+        <details class="multi" id="repo-multi">
+          <summary id="repo-summary">All repositories</summary>
+          <div class="multi-panel" id="repo-filter"></div>
+        </details>
+      </div>
+      <div class="filter">
+        <label for="author-filter">Contributors</label>
+        <details class="multi" id="author-multi">
+          <summary id="author-summary">All contributors</summary>
+          <div class="multi-panel" id="author-filter"></div>
+        </details>
+      </div>
+    </section>
+
+    <section class="kpis" id="kpis" aria-label="Summary"></section>
+
+    <section class="card chart-card">
+      <div class="card-head">
+        <div>
+          <h2>Activity over time</h2>
+          <p class="card-sub" id="timeseries-sub"></p>
+        </div>
+        <div class="segmented small" id="stackby" role="group" aria-label="Break down by">
+          <button type="button" data-val="author" class="active">By contributor</button>
+          <button type="button" data-val="repo">By repository</button>
+        </div>
+      </div>
+      <div class="legend" id="ts-legend"></div>
+      <div class="chart-scroll">
+        <div id="timeseries" class="chart"></div>
+      </div>
+    </section>
+
+    <div class="grid-2">
+      <section class="card">
+        <div class="card-head"><h2>Contributor leaderboard</h2></div>
+        <div id="contrib-bars" class="chart barchart"></div>
+      </section>
+      <section class="card">
+        <div class="card-head"><h2>Repository activity</h2></div>
+        <div id="repo-bars" class="chart barchart"></div>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Contributor detail</h2>
+        <p class="card-sub">Sortable — click a column header. Numbers reflect the filters above.</p>
+      </div>
+      <div class="table-wrap">
+        <table id="detail-table" class="detail-table">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <span id="foot-scope"></span>
+      <span class="foot-sep">·</span>
+      <span>LabPulse counts lines by commit author on each repo's default branch. Merge commits excluded.</span>
+    </footer>
+  </div>
+
+  <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+  <div id="empty" class="empty" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

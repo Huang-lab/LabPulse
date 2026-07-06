@@ -1,0 +1,18 @@
+{
+  "owners": ["huang-lab"],
+  "branch": "default",
+  "since": null,
+  "include_forks": false,
+  "include_archived": true,
+  "include_merge_commits": false,
+  "exclude_repos": [],
+  "exclude_authors": [
+    "dependabot[bot]",
+    "github-actions[bot]",
+    "actions-user",
+    "web-flow"
+  ],
+  "author_aliases": {},
+  "max_lines_per_commit": null,
+  "max_commit_details_per_run": 4000
+}

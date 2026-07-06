@@ -1,0 +1,18 @@
+# Incremental fetch cache (rebuilt on each run; persisted in CI via actions/cache)
+.cache/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Node (local dev only)
+node_modules/
+package*.json
