@@ -599,6 +599,15 @@
   }
 
   function initControls() {
+    // The HTML controls are the single source of truth for the initial state,
+    // so a cached app.js can never disagree with a freshly-loaded index.html.
+    state.range = $("range").value;
+    $("custom-range").hidden = state.range !== "custom";
+    const activeOf = (id) => document.querySelector(`#${id} button.active`)?.dataset.val;
+    state.granularity = activeOf("granularity") || state.granularity;
+    state.metric = activeOf("metric") || state.metric;
+    state.stackBy = activeOf("stackby") || state.stackBy;
+
     $("range").addEventListener("change", (e) => {
       state.range = e.target.value;
       $("custom-range").hidden = state.range !== "custom";

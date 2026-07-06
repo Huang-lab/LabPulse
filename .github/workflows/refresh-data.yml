@@ -63,6 +63,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 scripts/fetch_activity.py
 
+      # Replace the ?v=dev asset query with the commit SHA so browsers always
+      # fetch the current app.js/styles.css after a deploy (no stale JS).
+      - name: Stamp asset version (cache-busting)
+        run: sed -i "s/?v=dev/?v=${GITHUB_SHA}/g" public/index.html
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
