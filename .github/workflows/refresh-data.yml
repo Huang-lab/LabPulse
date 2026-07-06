@@ -33,6 +33,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Turns on GitHub Pages (source = GitHub Actions) if it isn't already,
+      # so no manual Settings → Pages step is needed.
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
