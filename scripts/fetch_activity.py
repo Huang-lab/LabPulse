@@ -394,6 +394,8 @@ def aggregate(all_caches, repos, cfg):
     """Build the daily-aggregated dataset from per-repo commit caches."""
     alias_lookup = build_alias_lookup(cfg)
     excluded = cfg.get("exclude_authors") or []
+    cap = cfg.get("max_lines_per_commit")   # applied here too, so the cap takes
+                                            # effect retroactively over the cache
 
     repo_index = {r["full_name"]: i for i, r in enumerate(repos)}
     authors = {}        # key -> author meta dict
@@ -415,6 +417,8 @@ def aggregate(all_caches, repos, cfg):
                 continue
             if is_excluded_author(rec, excluded):
                 continue
+            if cap and (rec.get("add", 0) + rec.get("del", 0)) > cap:
+                continue  # skip bulk/vendored/generated commits
             key = author_key(rec, alias_lookup)
 
             if key not in author_index:

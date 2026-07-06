@@ -23,6 +23,6 @@
     "AshirBorah": ["Ashir", "Ashir Borah"]
   },
   "lab_members": [],
-  "max_lines_per_commit": null,
+  "max_lines_per_commit": 10000,
   "max_commit_details_per_run": 4000
 }
