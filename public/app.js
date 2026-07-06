@@ -12,6 +12,26 @@
   };
   const OTHER = { light: "#9a9992", dark: "#78776f" };
 
+  // Every lab member gets a distinct color. The first 8 use the validated,
+  // colorblind-safe palette; beyond that we extend with evenly spaced hues
+  // (golden-angle rotation) so an arbitrary number of members stay distinct.
+  // Identity is also carried by the legend, axis labels and table, so color is
+  // reinforcement rather than the sole channel past the first 8.
+  function hslToHex(h, s, l) {
+    s /= 100; l /= 100;
+    const k = (n) => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+    const hx = (x) => Math.round(255 * x).toString(16).padStart(2, "0");
+    return `#${hx(f(0))}${hx(f(8))}${hx(f(4))}`;
+  }
+  function colorAt(i, dark) {
+    const base = dark ? SERIES.dark : SERIES.light;
+    if (i < base.length) return base[i];
+    const hue = (i * 137.508) % 360;                 // golden angle
+    return dark ? hslToHex(hue, 58, 63) : hslToHex(hue, 62, 46);
+  }
+
   function theme() {
     const attr = document.documentElement.getAttribute("data-theme");
     const dark = attr === "dark" || (!attr && window.matchMedia("(prefers-color-scheme: dark)").matches);
@@ -21,7 +41,6 @@
       dark,
       surface: v("--surface-1"), grid: v("--grid"), axis: v("--axis"),
       textPrimary: v("--text-primary"), textSecondary: v("--text-secondary"), muted: v("--muted"),
-      series: dark ? SERIES.dark : SERIES.light,
       other: dark ? OTHER.dark : OTHER.light,
     };
   }
@@ -46,13 +65,14 @@
   // --- state ----------------------------------------------------------------
   const state = {
     data: null,
-    range: "90", from: null, to: null,
-    granularity: "week", metric: "lines", stackBy: "author",
+    range: "7", from: null, to: null,
+    granularity: "day", metric: "lines", stackBy: "author",
     repos: null, authors: null,      // Set of allowed indices, null = all
     sort: { key: "lines", dir: -1 },
   };
 
-  let colorSlot = { author: [], repo: [] };   // index -> slot (0..7) or -1
+  let colorSlot = { author: [], repo: [] };   // index -> color slot, or -1 for "Other"
+  let memberMode = false;                      // true when a lab_members list is configured
   const $ = (id) => document.getElementById(id);
 
   // --- data prep ------------------------------------------------------------
@@ -67,18 +87,43 @@
   const metricLabel = () => ({ lines: "Lines changed", commits: "Commits", additions: "Additions", deletions: "Deletions" }[state.metric]);
 
   function computeStableColors(data) {
-    const rank = (n, get) => {
-      const tot = new Array(n).fill(0);
-      for (const r of data.rows) tot[get(r)] += r[4] + r[5];
-      const order = tot.map((v, i) => [i, v]).sort((a, b) => b[1] - a[1]);
-      const slot = new Array(n).fill(-1);
-      order.forEach(([i], k) => { if (k < 8) slot[i] = k; });
-      return slot;
+    // Total lines per entity across ALL data, so a colour follows the entity and
+    // never shifts when filters change.
+    const totals = (n, get) => {
+      const t = new Array(n).fill(0);
+      for (const r of data.rows) t[get(r)] += r[4] + r[5];
+      return t;
     };
-    colorSlot.author = rank(data.authors.length, (r) => r[1]);
-    colorSlot.repo = rank(data.repos.length, (r) => r[0]);
+
+    // Lab members: everyone listed in config.lab_members gets a distinct colour;
+    // anyone else falls into "Other". An empty list means treat everyone as a
+    // member (colour all contributors).
+    const memberSet = new Set((data.lab_members || []).map((s) => String(s).trim().toLowerCase()));
+    memberMode = memberSet.size > 0;
+    const isMember = (a) => {
+      if (!memberMode) return true;
+      return [a.login, a.name, a.display]
+        .filter(Boolean)
+        .some((x) => memberSet.has(String(x).toLowerCase()));
+    };
+
+    const aTot = totals(data.authors.length, (r) => r[1]);
+    const aSlots = new Array(data.authors.length).fill(-1);
+    data.authors
+      .map((a, i) => i)
+      .filter((i) => isMember(data.authors[i]))
+      .sort((x, y) => aTot[y] - aTot[x])
+      .forEach((i, k) => { aSlots[i] = k; });
+    colorSlot.author = aSlots;
+
+    // Repositories: colour them all (ranked by activity), so the "by repository"
+    // view is fully coloured too.
+    const rTot = totals(data.repos.length, (r) => r[0]);
+    const rSlots = new Array(data.repos.length).fill(-1);
+    rTot.map((v, i) => [i, v]).sort((a, b) => b[1] - a[1]).forEach(([i], k) => { rSlots[i] = k; });
+    colorSlot.repo = rSlots;
   }
-  const colorFor = (dim, idx, th) => { const s = colorSlot[dim][idx]; return s >= 0 ? th.series[s] : th.other; };
+  const colorFor = (dim, idx, th) => { const s = colorSlot[dim][idx]; return s >= 0 ? colorAt(s, th.dark) : th.other; };
 
   // --- range / filtering ----------------------------------------------------
   function activeRange() {
@@ -235,7 +280,7 @@
     const colored = [...present].filter((i) => colorSlot[dim][i] >= 0).sort((a, b) => colorSlot[dim][a] - colorSlot[dim][b]);
     const others = [...present].filter((i) => colorSlot[dim][i] < 0);
     const series = [];
-    if (others.length) series.push({ idx: -1, label: `Other (${others.length})`, color: th.other, data: new Array(buckets.length).fill(0) });
+    if (others.length) series.push({ idx: -1, label: `${memberMode ? "External" : "Other"} (${others.length})`, color: th.other, data: new Array(buckets.length).fill(0) });
     for (const i of colored) {
       const name = (meta[i].display || meta[i].name || meta[i].login || "unknown");
       series.push({ idx: i, label: name, color: colorFor(dim, i, th), data: new Array(buckets.length).fill(0) });

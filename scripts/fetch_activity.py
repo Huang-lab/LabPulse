@@ -473,6 +473,7 @@ def aggregate(all_caches, repos, cfg):
         "schema": SCHEMA_VERSION,
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "owners": cfg["owners"],
+        "lab_members": cfg.get("lab_members", []),
         "date_range": {"start": min_day, "end": max_day},
         "columns": ["repo", "author", "date", "commits", "additions", "deletions"],
         "repos": [
@@ -505,6 +506,7 @@ def load_config(path):
     cfg.setdefault("exclude_repos", [])
     cfg.setdefault("exclude_authors", [])
     cfg.setdefault("author_aliases", {})
+    cfg.setdefault("lab_members", [])
     cfg.setdefault("max_lines_per_commit", None)
     cfg.setdefault("max_commit_details_per_run", 4000)
     return cfg

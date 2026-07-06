@@ -13,6 +13,7 @@
     "web-flow"
   ],
   "author_aliases": {},
+  "lab_members": [],
   "max_lines_per_commit": null,
   "max_commit_details_per_run": 4000
 }

@@ -105,6 +105,8 @@ def main():
         "demo": True,
         "generated_at": "2026-07-06T00:00:00Z",
         "owners": ["huang-lab"],
+        # Demo: mark most people as lab members; the rest render as "External".
+        "lab_members": [c[0] for c in CONTRIBUTORS[:6]],
         "date_range": {"start": start.isoformat(), "end": end.isoformat()},
         "columns": ["repo", "author", "date", "commits", "additions", "deletions"],
         "repos": repos,
