@@ -65,7 +65,7 @@
   // --- state ----------------------------------------------------------------
   const state = {
     data: null,
-    range: "7", from: null, to: null,
+    range: "30", from: null, to: null,
     granularity: "day", metric: "lines", stackBy: "author",
     repos: null, authors: null,      // Set of allowed indices, null = all
     sort: { key: "lines", dir: -1 },
