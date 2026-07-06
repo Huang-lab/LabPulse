@@ -34,9 +34,9 @@ config.json ──▶ scripts/fetch_activity.py ──▶ public/data/activity.j
    only fetches commits it hasn't seen.
 2. **`public/`** is a dependency-free single-page dashboard that reads that JSON
    and does day/week/month rollups, filtering, and charting in the browser.
-3. **`.github/workflows/refresh-data.yml`** runs the fetch daily and commits the
-   refreshed `public/data/activity.json` back to the repo. Your static host
-   (Vercel, Netlify, or GitHub Pages) redeploys automatically on that commit.
+3. **`.github/workflows/refresh-data.yml`** runs the fetch daily and publishes
+   `public/` to GitHub Pages (a `github.io` URL). It can also be adapted to commit
+   the data back for other static hosts like Vercel — see the note in Setup.
 
 ---
 
@@ -67,32 +67,27 @@ secret:
 2. In this repository: *Settings → Secrets and variables → Actions → New
    repository secret*. Name it **`LABPULSE_TOKEN`**, paste the token.
 
-### 3. Populate the data
+### 3. Enable GitHub Pages
 
-*Actions → "Refresh LabPulse data" → Run workflow.* It fetches all your org's
-activity and commits `public/data/activity.json` back to the repo. (It then
-re-runs on its own every day.)
+*Settings → Pages → Build and deployment → Source = **GitHub Actions***. (Free for
+public repos; private repos need a paid GitHub plan — see the Vercel note below.)
 
-### 4. Host the dashboard
+### 4. Run it
 
-`public/` is a plain static site — host it anywhere. Pick one:
+*Actions → "Refresh LabPulse data" → Run workflow.* The workflow fetches all your
+org's activity **and** publishes the dashboard to GitHub Pages in one go. When it
+finishes, the URL is shown on the run's **deploy** job and under *Settings → Pages*
+— typically `https://<org>.github.io/<repo>/` (e.g.
+`https://huang-lab.github.io/LabPulse/`). After this it refreshes every day on its
+own; new repos appear automatically.
 
-**Vercel (free, works on private repos — recommended):**
-1. [vercel.com](https://vercel.com) → **Add New… → Project** → import this repo.
-2. Vercel reads `vercel.json`, so the defaults are correct: **Framework = Other**,
-   **Build Command = empty**, **Output Directory = `public`**. Just click **Deploy**.
-3. Done — the dashboard is live at `https://<project>.vercel.app`. Every daily
-   data commit from the Action triggers an automatic redeploy.
-
-> **Privacy note:** a Vercel Hobby (free) URL is reachable by anyone who has the
-> link (no password — that needs Vercel Pro). The link is unguessable, which is
-> usually fine for an internal lab dashboard. If you need real auth, that's a
-> paid Vercel feature or a different host.
-
-**GitHub Pages (free only if the repo is *public*):** *Settings → Pages → Source
-= Deploy from a branch → `main` / `/ (root)` won't work (data is in `public/`);
-use the "GitHub Actions" source with a Pages deploy step instead.* Since Pages on
-a private repo requires a paid plan, Vercel is the better free option here.
+> **Prefer Vercel (e.g. to keep the repo private)?** `public/` is a plain static
+> site. Import the repo at [vercel.com](https://vercel.com) — it reads
+> `vercel.json` (Output Directory `public`, no build). For that path, have the
+> workflow commit the data back instead of deploying Pages (earlier git history of
+> `refresh-data.yml` has that variant), so Vercel redeploys on each data commit.
+> A free Vercel URL is reachable by anyone with the link (password protection is a
+> paid feature).
 
 ---
 
@@ -154,6 +149,6 @@ scripts/fetch_activity.py           # data fetcher (stdlib only)
 scripts/make_sample_data.py         # demo-data generator
 public/index.html · styles.css · app.js   # the dashboard
 public/data/activity.json           # generated dataset (demo data committed)
-.github/workflows/refresh-data.yml        # scheduled fetch → commits data back
-vercel.json                               # static-host config for Vercel
+.github/workflows/refresh-data.yml        # scheduled fetch → deploy to GitHub Pages
+vercel.json                               # optional: static-host config for Vercel
 ```
