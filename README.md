@@ -91,6 +91,20 @@ own; new repos appear automatically.
 
 ---
 
+## Troubleshooting
+
+**The `deploy` job fails instantly (a few seconds, no logs).** The `github-pages`
+environment has a deployment-branch rule that doesn't allow `main` — this happens
+if Pages was enabled while a *different* branch was the default. Fix: *Settings →
+Environments → `github-pages`* → delete the environment (it's recreated correctly
+on the next run) or set "Deployment branches" to allow `main` / "No restriction".
+
+**The `deploy` job fails and Pages isn't on.** Ensure *Settings → Pages → Source
+= GitHub Actions*. (The workflow also auto-enables it via `actions/configure-pages`.)
+
+**The `Commit`/build step can't push or deploy (403).** *Settings → Actions →
+General → Workflow permissions* must be **Read and write permissions**.
+
 ## Run it locally
 
 ```bash
