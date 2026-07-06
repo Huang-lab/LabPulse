@@ -10,9 +10,18 @@
     "dependabot[bot]",
     "github-actions[bot]",
     "actions-user",
-    "web-flow"
+    "web-flow",
+    "claude",
+    "copilot",
+    "copilot-swe-agent[bot]"
   ],
-  "author_aliases": {},
+  "author_aliases": {
+    "kuanlinhuang": ["Kuan Lin Huang", "Kuan-Lin Huang", "Huang"],
+    "ygrepo": ["Yves Greatti"],
+    "claudiofr": ["Claudio Fratarcangeli"],
+    "gldong": ["gldong"],
+    "AshirBorah": ["Ashir", "Ashir Borah"]
+  },
   "lab_members": [],
   "max_lines_per_commit": null,
   "max_commit_details_per_run": 4000
