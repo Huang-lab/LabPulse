@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "outputDirectory": "public",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/data/activity.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, must-revalidate" }
+      ]
+    }
+  ]
+}

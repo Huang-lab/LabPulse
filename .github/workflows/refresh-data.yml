@@ -1,0 +1,63 @@
+name: Refresh LabPulse data
+
+# Fetches activity for every configured owner's repos and commits the refreshed
+# dataset (public/data/activity.json) back to the repo. Whatever host is
+# connected to the repo (Vercel, Netlify, GitHub Pages, …) then redeploys the
+# static site automatically on that commit.
+#
+# Runs on a schedule so new repos and new commits are picked up automatically,
+# and can be triggered by hand from the Actions tab.
+
+on:
+  schedule:
+    - cron: "17 6 * * *"      # daily at 06:17 UTC
+  workflow_dispatch: {}        # manual "Run workflow" button
+
+permissions:
+  contents: write              # needed to commit the refreshed data back
+
+concurrency:
+  group: labpulse-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Incremental commit-stats cache. restore-keys always restores the most
+      # recent cache; a fresh key each run saves the updated cache.
+      - name: Restore fetch cache
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: labpulse-cache-${{ github.run_id }}
+          restore-keys: |
+            labpulse-cache-
+
+      - name: Fetch activity
+        env:
+          # PAT with read access to the org's repositories. Add it as a repo
+          # secret named LABPULSE_TOKEN. Without it, only this repo is counted.
+          LABPULSE_TOKEN: ${{ secrets.LABPULSE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/fetch_activity.py
+
+      - name: Commit refreshed data
+        run: |
+          git config user.name "labpulse-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/activity.json
+          if git diff --cached --quiet; then
+            echo "No data changes to commit."
+          else
+            git commit -m "chore: refresh activity data [skip ci]"
+            git push
+          fi
